@@ -1,0 +1,40 @@
+[package]
+name = "led-blink"
+version = "0.1.0"
+edition = "2024"
+authors = ["Igor Akimov", "<igorakimy@gmail.com>"]
+
+[dependencies]
+# Низкоуровневый доступ к процессорам Cortex-M
+cortex-m = {
+    version = "0.7.7",
+    features = ["critical-section-single-core"]
+}
+# Минимальный рантайм для микроконтроллеров Cortex-M
+cortex-m-rt = "0.7.5"
+# Фреймворк для логирования на микроконтроллерах
+defmt = "1.1.0"
+defmt-rtt = "1.2.0"
+# Переопределяет поведение паники на МК, т.к. нет ОС, 
+# поэтому нужен механизм остановки или ухода в бесконечный цикл
+panic-halt = "1.0"
+# Высокоуровневый API доступ к периферийным устройствам
+# для микроконтроллеров серии STM32F4
+stm32f4xx-hal = {
+    version = "0.23.0",
+    # Указываем конкретную модель микроконтроллера и прочие настройки
+    features = ["stm32f446"]
+}
+
+# Конфигурация сборки бинарного файла
+[[bin]]
+name = "led-blink"
+test = false
+bench = false
+
+# Настройка профилей для сборки
+[profile.release]
+codegen-units = 1
+debug = 2
+lto = "fat"
+opt-level = 3
