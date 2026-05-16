@@ -1,0 +1,16 @@
+$name?="NUCLEO-F446RE"
+$bin_path?=@target/thumbv7em-none-eabihf/release/switch-button
+
+mach create $name
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+machine LoadPlatformDescription @breadboard.repl
+
+sysbus LoadELF $bin_path
+
+logLevel -1 gpioPortA.breadboardLED_Red
+logLevel -1 gpioPortA.breadboardLED_Blue
+logLevel -1 gpioPortB.breadboardLED_Yellow
+
+machine StartGdbServer 3333
+
+start

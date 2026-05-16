@@ -1,0 +1,16 @@
+breadboardLED_Blue: Miscellaneous.LED @ gpioPortA
+breadboardLED_Red: Miscellaneous.LED @ gpioPortA
+breadboardLED_Yellow: Miscellaneous.LED @ gpioPortB
+
+breadboardButton_1: Miscellaneous.Button @ gpioPortB
+    -> gpioPortB@9
+breadboardButton_2: Miscellaneous.Button @ gpioPortB
+    invert: true
+    -> gpioPortB@8
+
+gpioPortA:
+    8 -> breadboardLED_Yellow@0
+    10 -> breadboardLED_Blue@0
+
+gpioPortB:
+    5 -> breadboardLED_Red@0
