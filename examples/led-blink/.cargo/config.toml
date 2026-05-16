@@ -1,15 +1,10 @@
-[target.thumbv7em-none-eabihf]
-runner = "arm-none-eabi-gdb"
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "renode-run"
 
 rustflags = [
   "-C", "link-arg=-Tlink.x",
-  "-C", "link-arg=-Tdefmt.x",
 ]
 
 [build]
 # настройка кросскомпиляции программы для архитектуры Cortex-M4
 target = "thumbv7em-none-eabihf"
-
-[env]
-DEFMT_LOG = "info"
-DEFMT_RTT_BUFFER_SIZE = "1024"

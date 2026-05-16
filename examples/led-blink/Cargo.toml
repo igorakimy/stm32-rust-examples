@@ -38,3 +38,23 @@ codegen-units = 1
 debug = 2
 lto = "fat"
 opt-level = 3
+
+[profile.dev]
+lto = true
+opt-level = "z"
+
+# Настройки renode для крейта renode-run
+# https://github.com/jonlamb-gh/renode-run
+[package.metadata.renode]
+name = 'led-blnk'
+description = 'renode script that shows how to blink an led'
+machine-name = 'NUCLEO-F446RE'
+using-sysbus = true
+renode = 'renode'
+platform-descriptions = [
+    '@platforms/boards/stm32f4_discovery-kit.repl',
+]
+pre-start-commands = [
+    'logLevel -1 gpioPortA.externalLed',
+    'machine StartGdbServer 3333',
+]

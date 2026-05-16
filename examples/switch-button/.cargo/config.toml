@@ -1,5 +1,5 @@
-[target.thumbv7em-none-eabihf]
-runner = "arm-none-eabi-gdb"
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "renode-run"
 
 rustflags = [
   "-C", "link-arg=-Tlink.x",

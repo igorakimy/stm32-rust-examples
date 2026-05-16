@@ -23,3 +23,26 @@ codegen-units = 1
 debug = 2
 lto = true
 opt-level = "z"
+
+[profile.dev]
+lto = true
+opt-level = "z"
+
+[package.metadata.renode]
+name = 'switch-button'
+description = 'renode script that shows how to control switch buttons'
+machine-name = 'NUCLEO-F446RE'
+using-sysbus = true
+renode = 'renode'
+platform-descriptions = [
+    '@platforms/boards/stm32f4_discovery-kit.repl',
+    '@breadboard.repl',
+]
+pre-start-commands = [
+    '''
+    logLevel -1 gpioPortA.breadboardLED_Red
+    logLevel -1 gpioPortA.breadboardLED_Blue
+    logLevel -1 gpioPortB.breadboardLED_Yellow
+    ''',
+    'machine StartGdbServer 3333',
+]

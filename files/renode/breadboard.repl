@@ -1,4 +1,0 @@
-vGreenLed: Miscellaneous.LED @ gpioPortA
-
-gpioPortA:
-    10 -> vGreenLed@0
