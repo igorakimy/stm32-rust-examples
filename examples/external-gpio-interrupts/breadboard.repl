@@ -1,0 +1,26 @@
+seg_a: Miscellaneous.LED @ gpioPortA
+seg_b: Miscellaneous.LED @ gpioPortB
+seg_c: Miscellaneous.LED @ gpioPortB
+seg_d: Miscellaneous.LED @ gpioPortB
+seg_e: Miscellaneous.LED @ gpioPortB
+seg_f: Miscellaneous.LED @ gpioPortA
+seg_g: Miscellaneous.LED @ gpioPortA
+decimal_point: Miscellaneous.LED @ gpioPortC
+
+breadboardButton: Miscellaneous.Button @ gpioPortC
+    invert: true
+    -> gpioPortC@1
+
+gpioPortA:
+    10 -> seg_a@0
+    8 -> seg_f@0
+    9 -> seg_g@0
+
+gpioPortB:
+    3 -> seg_b@0
+    5 -> seg_c@0
+    4 -> seg_d@0
+    10 -> seg_e@0
+
+gpioPortC:
+    7 -> decimal_point@0
