@@ -1,0 +1,4 @@
+breadboardRedLED: Miscellaneous.LED @ gpioPortA
+
+gpioPortA:
+    10 -> breadboardRedLED@0
