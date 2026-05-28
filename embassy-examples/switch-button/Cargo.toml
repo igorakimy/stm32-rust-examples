@@ -1,0 +1,51 @@
+[package]
+name = "switch-button"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = {
+    version = "0.7.7",
+    features = ["critical-section-single-core"]
+}
+cortex-m-rt = "0.7.5"
+embedded-hal = "1.0.0-rc.2"
+embassy-stm32 = {
+    version = "0.6.0",
+    features = ["stm32f446re", "time-driver-any"]
+}
+embassy-executor = {
+    version = "0.10.0",
+    features = ["platform-cortex-m", "executor-thread", "executor-interrupt"]
+}
+embassy-sync = "0.8.0"
+embassy-time = {
+    version = "0.5.1",
+}
+panic-halt = "1.0.0"
+
+[[bin]]
+name = "switch-button"
+test = false
+bench = false
+
+[profile.dev]
+lto = true
+opt-level = "s"
+
+[package.metadata.renode]
+name = "switch-button"
+description = "renode script that shows how to switch the button"
+machine-name = "NUCLEO-F446RE"
+using-sysbus = true
+renode = "renode"
+platform-descriptions = [
+    "@platforms/boards/stm32f4_discovery-kit.repl",
+    "@breadboard.repl",
+]
+pre-start-commands = [
+    "logLevel -1 gpioPortA.breadboardLED_Blue",
+    "logLevel -1 gpioPortB.breadboardLED_Red",
+    "logLevel -1 gpioPortA.breadboardLED_Yellow",
+    "machine StartGdbServer 3333",
+]
