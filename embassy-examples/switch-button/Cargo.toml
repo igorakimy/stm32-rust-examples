@@ -9,10 +9,10 @@ cortex-m = {
     features = ["critical-section-single-core"]
 }
 cortex-m-rt = "0.7.5"
-embedded-hal = "1.0.0-rc.2"
+embedded-hal = "1.0.0"
 embassy-stm32 = {
     version = "0.6.0",
-    features = ["stm32f446re", "time-driver-any"]
+    features = ["stm32f446re", "time-driver-any", "exti"]
 }
 embassy-executor = {
     version = "0.10.0",

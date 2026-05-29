@@ -1,28 +1,30 @@
 #![no_std]
 #![no_main]
 
+use core::sync::atomic::{AtomicBool, Ordering};
 use embassy_executor::Spawner;
 use embassy_stm32::{
     Config,
-    gpio::{Input, Level, Output, Pull, Speed},
+    gpio::{Level, Output, Pull, Speed},
+    exti::{self, ExtiInput},
+    bind_interrupts,
+    mode::Async,
+    interrupt,
 };
-use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
-use embassy_sync::mutex::Mutex;
-use embassy_time::{Duration, Timer};
+use embassy_time::{Timer};
 use panic_halt as _;
 
-// Определяем тип светодиода для удобства использования
-type LedType = Mutex<ThreadModeRawMutex, Option<Output<'static>>>;
-// Статически инициализируем светодиоды
-static BLUE_LED: LedType = Mutex::new(None);
-static RED_LED: LedType = Mutex::new(None);
-static YELLOW_LED: LedType = Mutex::new(None);
+// Объявляем глобальные статические переменные для отслеживания
+// состояния нажатия кнопок.
+// Значения состояний являются атомарными
+// для безопасного чтения/записи из нескольких задач
+static BUTTON1_PRESSED: AtomicBool = AtomicBool::new(false);
+static BUTTON2_PRESSED: AtomicBool = AtomicBool::new(false);
 
-// Определяем тип кнопки для удобства использования
-type ButtonType = Mutex<ThreadModeRawMutex, Option<Input<'static>>>;
-// Статически инициализируем кнопки
-static BUTTON1: ButtonType = Mutex::new(None);
-static BUTTON2: ButtonType = Mutex::new(None);
+// Включаем внешние прерывания для GPIO пинов с 5 по 9
+bind_interrupts!(pub struct Irqs {
+    EXTI9_5 => exti::InterruptHandler<interrupt::typelevel::EXTI9_5>;
+});
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -35,85 +37,103 @@ async fn main(spawner: Spawner) {
     let yellow_led = Output::new(p.PA8, Level::Low, Speed::Low);
 
     // Инициализируем пины для кнопок
-    let button_1 = Input::new(p.PB9, Pull::Down);
-    let button_2 = Input::new(p.PB8, Pull::Up);
-
-    // Записываем значения инициализированных пинов
-    // в статические переменные, используя блокировки мьютекса
-    {
-        *(BLUE_LED.lock().await) = Some(blue_led);
-        *(RED_LED.lock().await) = Some(red_led);
-        *(YELLOW_LED.lock().await) = Some(yellow_led);
-        *(BUTTON1.lock().await) = Some(button_1);
-        *(BUTTON2.lock().await) = Some(button_2);
-    }
+    let button_1 = ExtiInput::new(p.PB9, p.EXTI9, Pull::Down, Irqs);
+    let button_2 = ExtiInput::new(p.PB8, p.EXTI8, Pull::Up, Irqs);
 
     // Помещаем задачи в executor, передавая ссылки на глобальные пины
-    spawner.spawn(toggle_led_on_press_button(
-        &BLUE_LED, &BUTTON1,
-        Duration::from_millis(2_000)
-    ).unwrap());
-    spawner.spawn(toggle_led_on_press_button(
-        &RED_LED, &BUTTON2,
-        Duration::from_millis(500),
-    ).unwrap());
-    spawner.spawn(toggle_led_on_press_two_buttons(
-        &YELLOW_LED, &BUTTON1, &BUTTON2,
-        Duration::from_millis(1_000),
-    ).unwrap());
+    spawner.spawn(blue_led_blink(blue_led).unwrap());
+    spawner.spawn(red_led_blink(red_led).unwrap());
+    spawner.spawn(yellow_led_blink(yellow_led).unwrap());
+    spawner.spawn(button1_click(button_1).unwrap());
+    spawner.spawn(button2_click(button_2).unwrap());
 }
 
-// Функция переключает светодиод с указанным временным интервалом,
-// когда нажата одна кнопка.
-#[embassy_executor::task(pool_size = 2)]
-async fn toggle_led_on_press_button(
-    led: &'static LedType,
-    button: &'static ButtonType,
-    delay: Duration,
-) {
+// Асинхронная функция для мигания красного светодиода
+#[embassy_executor::task]
+async fn red_led_blink(mut led: Output<'static>) {
     loop {
-        {
-            let mut led_unlocked = led.lock().await;
-            let btn_unlocked = button.lock().await;
-            if let (Some(led_pin_ref), Some(btn_pin_ref)) =
-                (led_unlocked.as_mut(), btn_unlocked.as_ref())
-            {
-                // Проверяем логический уровень на кнопке
-                if btn_pin_ref.is_high() {
-                    // Переключаем логический уровень на светодиоде
-                    led_pin_ref.toggle()
-                }
-            }
+        // Если нажата первая кнопка
+        if BUTTON1_PRESSED.load(Ordering::Relaxed) {
+            // Переключить состояние светодиода
+            led.toggle();
+            Timer::after_millis(500).await;
+        } else {
+            // Если кнопка отпущена, то погасить светодиод
+            led.set_low();
+            Timer::after_millis(10).await;
         }
-        // Приостановить задачу на указанный интервал
-        Timer::after(delay).await;
     }
 }
 
-// Функция переключает светодиод с указанным временным интервалом,
-// когда нажаты две кнопки.
 #[embassy_executor::task]
-async fn toggle_led_on_press_two_buttons(
-    led: &'static LedType,
-    btn1: &'static ButtonType,
-    btn2: &'static ButtonType,
-    delay: Duration,
-) {
+async fn blue_led_blink(mut led: Output<'static>) {
     loop {
-        {
-            let mut led_unlocked = led.lock().await;
-            let btn1_unlocked = btn1.lock().await;
-            let btn2_unlocked = btn2.lock().await;
-            if let (Some(led_pin_ref), Some(btn1_pin_ref), Some(btn2_pin_ref)) = (
-                led_unlocked.as_mut(),
-                btn1_unlocked.as_ref(),
-                btn2_unlocked.as_ref(),
-            ) {
-                if btn1_pin_ref.is_low() && btn2_pin_ref.is_low() {
-                    led_pin_ref.toggle()
-                }
-            }
+        if BUTTON2_PRESSED.load(Ordering::Relaxed) {
+            led.toggle();
+            Timer::after_millis(2000).await;
+        } else {
+            led.set_low();
+            Timer::after_millis(10).await;
         }
-        Timer::after(delay).await;
+    }
+}
+
+#[embassy_executor::task]
+async fn yellow_led_blink(mut led: Output<'static>) {
+    loop {
+        if !BUTTON1_PRESSED.load(Ordering::Relaxed) && !BUTTON2_PRESSED.load(Ordering::Relaxed) {
+            led.toggle();
+            Timer::after_millis(1000).await;
+        } else {
+            led.set_low();
+            Timer::after_millis(10).await;
+        }
+    }
+}
+
+#[embassy_executor::task]
+async fn button1_click(mut button: ExtiInput<'static, Async>) {
+    loop {
+        wait_debounced_press(&mut button).await;
+        BUTTON1_PRESSED.store(true, Ordering::Relaxed);
+        wait_debounced_release(&mut button).await;
+        BUTTON1_PRESSED.store(false, Ordering::Relaxed);
+    }
+}
+
+#[embassy_executor::task]
+async fn button2_click(mut button: ExtiInput<'static, Async>) {
+    loop {
+        wait_debounced_release(&mut button).await;
+        BUTTON2_PRESSED.store(true, Ordering::Relaxed);
+        wait_debounced_press(&mut button).await;
+        BUTTON2_PRESSED.store(false, Ordering::Relaxed);
+    }
+}
+
+// Асинхронная функция для отслеживания, нажата ли кнопка
+// и подавления дребезга контактов
+async fn wait_debounced_press(button: &mut ExtiInput<'static, Async>) {
+    loop {
+        // Подождать пока состояние пина кнопки измениться на значение высокого потенциала
+        button.wait_for_rising_edge().await;
+        // Заснуть для подавления дребезга
+        Timer::after_millis(6).await;
+        // Проверить состояние кнопки
+        if button.is_high() {
+            return;
+        }
+    }
+}
+
+// Асинхронная функция для отслеживания, отжата ли кнопка
+// и подавления дребезга контактов
+async fn wait_debounced_release(button: &mut ExtiInput<'static, Async>) {
+    loop {
+        button.wait_for_falling_edge().await;
+        Timer::after_millis(6).await;
+        if button.is_low() {
+            return;
+        }
     }
 }
