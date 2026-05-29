@@ -1,0 +1,56 @@
+[package]
+name = "seven-segment-display"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = {
+    version = "0.7.7",
+    features = ["critical-section-single-core"]
+}
+cortex-m-rt = "0.7.5"
+embedded-hal = "1.0.0"
+embassy-stm32 = {
+    version = "0.6.0",
+    features = ["stm32f446re", "time-driver-any", "exti"]
+}
+embassy-executor = {
+    version = "0.10.0",
+    features = ["platform-cortex-m", "executor-thread", "executor-interrupt"]
+}
+embassy-sync = "0.8.0"
+embassy-time = {
+    version = "0.5.1",
+}
+panic-halt = "1.0.0"
+
+[[bin]]
+name = "seven-segment-display"
+test = false
+bench = false
+
+[profile.dev]
+lto = true
+opt-level = "s"
+
+[package.metadata.renode]
+name = "seven-segment-display"
+description = "renode script that shows how to work with 7-segment display"
+machine-name = "NUCLEO-F446RE"
+using-sysbus = true
+renode = "renode"
+platform-descriptions = [
+    "../../files/nucleo-f446re.repl",
+    "@breadboard.repl",
+]
+pre-start-commands = [
+    "logLevel -1 gpioPortA.seg_a",
+    "logLevel -1 gpioPortB.seg_b",
+    "logLevel -1 gpioPortB.seg_c",
+    "logLevel -1 gpioPortB.seg_d",
+    "logLevel -1 gpioPortB.seg_e",
+    "logLevel -1 gpioPortA.seg_f",
+    "logLevel -1 gpioPortA.seg_g",
+    "logLevel -1 gpioPortC.decimal_point",
+    "machine StartGdbServer 3333",
+]
