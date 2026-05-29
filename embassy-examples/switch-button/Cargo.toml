@@ -41,11 +41,8 @@ using-sysbus = true
 renode = "renode"
 platform-descriptions = [
     "../../files/nucleo-f446re.repl",
-    "@breadboard.repl",
 ]
 pre-start-commands = [
-    "logLevel -1 gpioPortA.breadboardLED_Blue",
-    "logLevel -1 gpioPortB.breadboardLED_Red",
-    "logLevel -1 gpioPortA.breadboardLED_Yellow",
+    "logLevel -1 gpioPortA.greenLED",
     "machine StartGdbServer 3333",
 ]
