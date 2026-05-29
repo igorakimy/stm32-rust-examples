@@ -40,7 +40,7 @@ machine-name = "NUCLEO-F446RE"
 using-sysbus = true
 renode = "renode"
 platform-descriptions = [
-    "@platforms/boards/stm32f4_discovery-kit.repl",
+    "../../files/nucleo-f446re.repl",
     "@breadboard.repl",
 ]
 pre-start-commands = [

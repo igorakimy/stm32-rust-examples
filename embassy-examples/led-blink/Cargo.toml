@@ -29,18 +29,18 @@ bench = false
 
 [profile.dev]
 lto = true
-opt-level = "z"
+opt-level = "s"
 
 [package.metadata.renode]
-name = 'led-blnk'
-description = 'renode script that shows how to blink an led'
-machine-name = 'NUCLEO-F446RE'
+name = "led-blnk"
+description = "renode script that shows how to blink an led"
+machine-name = "NUCLEO-F446RE"
 using-sysbus = true
-renode = 'renode'
+renode = "renode"
 platform-descriptions = [
-    '@platforms/boards/stm32f4_discovery-kit.repl',
+    "../../files/nucleo-f446re.repl",
 ]
 pre-start-commands = [
-    'logLevel -1 gpioPortA.externalLed',
-    'machine StartGdbServer 3333',
+    "logLevel -1 gpioPortA.greenLED",
+    "machine StartGdbServer 3333",
 ]
