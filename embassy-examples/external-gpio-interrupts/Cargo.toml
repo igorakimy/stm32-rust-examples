@@ -1,0 +1,49 @@
+[package]
+name = "external-gpio-interrupts"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = {
+    version = "0.7.7",
+    features = ["critical-section-single-core"]
+}
+cortex-m-rt = "0.7.5"
+embedded-hal = "1.0.0"
+embassy-stm32 = {
+    version = "0.6.0",
+    features = ["stm32f446re", "time-driver-any", "exti"]
+}
+embassy-executor = {
+    version = "0.10.0",
+    features = ["platform-cortex-m", "executor-thread", "executor-interrupt"]
+}
+embassy-sync = "0.8.0"
+embassy-time = {
+    version = "0.5.1",
+}
+panic-halt = "1.0.0"
+
+[[bin]]
+name = "external-gpio-interrupts"
+test = false
+bench = false
+
+[profile.dev]
+lto = true
+opt-level = "s"
+
+[package.metadata.renode]
+name = "external-gpio-interrupts"
+description = "renode script that shows how to work with external gpio interrupts"
+machine-name = "NUCLEO-F446RE"
+using-sysbus = true
+renode = "renode"
+platform-descriptions = [
+    "../../files/nucleo-f446re.repl",
+]
+pre-start-commands = [
+    "logLevel -1 gpioPortA.greenLED",
+    "logLevel -1 gpioPortC.userButton",
+    "machine StartGdbServer 3333",
+]
