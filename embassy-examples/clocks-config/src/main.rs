@@ -2,51 +2,62 @@
 #![no_main]
 
 use embassy_executor::Spawner;
-use embassy_stm32::{
-    Config,
-    rcc::{Hse, HseMode, Pll},
-    time::mhz,
-};
-use embassy_stm32::rcc::{AHBPrescaler, APBPrescaler, PllMul, PllPDiv, PllPreDiv, PllQDiv, PllRDiv, PllSource, Sysclk};
+use embassy_stm32::Config;
+use embassy_stm32::gpio::{Level, Output, Speed};
+use embassy_stm32::rcc::{AHBPrescaler, Hse, HseMode, Pll, PllMul, PllPDiv, PllPreDiv, PllSource, Sysclk};
+use embassy_stm32::time::mhz;
+use embassy_time::Timer;
 use panic_halt as _;
-
-// Если предделитель(prescaler) APB шины больше 1, то частоты таймеров,
-// принадлежащих этой шине удваивается, например:
-// APB1 = 45 MHz
-// TIM2 = 90 MHz
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
+    // Инициализируем периферию
+    let p = embassy_stm32::init(init_config());
+
+    // Инициализируем пин светодиода
+    let mut led = Output::new(p.PA5, Level::Low, Speed::Low);
+
+    loop {
+        // "Мигаем" светодиодом
+        led.toggle();
+
+        // Теперь задержка таймера будет составлять ровно 1 секунду
+        // в эмуляторе Renode, поскольку в .repl файле для платы Nucleo
+        // статически указана частота для каждого таймера в 10 МГц.
+        Timer::after_secs(1).await;
+    }
+}
+
+fn init_config() -> Config {
     let mut config = Config::default();
+    {
+        // Используем внешний кварцевый резонатор на 8 МГц
+        config.rcc.hse = Some(Hse {
+            freq: mhz(8),
+            mode: HseMode::Oscillator,
+        });
 
-    // Использование внешнего кварцевого резонатора на 8 МГц
-    config.rcc.hse = Some(Hse {
-        freq: mhz(8),
-        mode: HseMode::Oscillator,
-    });
+        // ФАПЧ берет HSE в качестве опорной частоты
+        config.rcc.pll_src = PllSource::HSE;
 
-    // ФАПЧ берет HSE за опорную частоту
-    config.rcc.pll_src = PllSource::HSE;
+        // Фазовая автоподстройка частоты (ФАПЧ) - умножитель частоты: принимает
+        // опорную частоту, например от внешнего генератора на 8 МГц и генерирует
+        // все остальные тактовые частоты (даже в реалтайме), необходимые МК.
+        config.rcc.pll = Some(Pll {
+            prediv: PllPreDiv::DIV4, // 8 MHz / 4 = 2 MHz
+            mul: PllMul::MUL80, // 2 MHz * 80 = 160 MHz
+            divp: Some(PllPDiv::DIV8), // 160 MHz / 8 = 20 MHz
+            divq: None,
+            divr: None,
+        });
 
-    // Фазовая автоподстройка частоты (ФАПЧ) - умножитель частоты: принимает
-    // опорную частоту, например от внешнего генератора 8 МГц и генерирует
-    // все остальные тактовые частоты (даже в реалтайме), необходимые МК.
-    config.rcc.pll = Some(Pll {
-        prediv: PllPreDiv::DIV4,
-        mul: PllMul::MUL180,
-        divp: Some(PllPDiv::DIV2),
-        divq: Some(PllQDiv::DIV2),
-        divr: Some(PllRDiv::DIV2),
-    });
+        // Задаем делитель для высокоскоростной системной шины AHB
+        config.rcc.ahb_pre = AHBPrescaler::DIV2; // 20 MHz / 2 = 10 MHz
 
-    // Выбираем системное тактирование, например от ФАПЧ,
-    // теперь CPU будет работать от PLL(ФАПЧ)
-    config.rcc.sys = Sysclk::PLL1_P;
+        // Выбираем системное тактирование, например от ФАПЧ,
+        // теперь CPU микроконтроллера будет работать от PLL(ФАПЧ)
+        config.rcc.sys = Sysclk::PLL1_P;
+    }
 
-    // Настройки предделителей(prescalers) частоты
-    config.rcc.ahb_pre = AHBPrescaler::DIV1;
-    config.rcc.apb1_pre = APBPrescaler::DIV4;
-    config.rcc.apb2_pre = APBPrescaler::DIV2;
-
-    let _ = embassy_stm32::init(config);
+    config
 }

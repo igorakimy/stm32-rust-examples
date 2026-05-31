@@ -43,5 +43,6 @@ platform-descriptions = [
     "../../files/nucleo-f446re.repl",
 ]
 pre-start-commands = [
+    "logLevel -1 gpioPortA.greenLED",
     "machine StartGdbServer 3333",
 ]

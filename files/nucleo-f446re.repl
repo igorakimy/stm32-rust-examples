@@ -132,7 +132,6 @@ timer9: Timers.STM32_Timer @ sysbus 0x40014000
     frequency: 10000000
     initialLimit: 0xFFFF
 
-
 timer10: Timers.STM32_Timer @ sysbus 0x40014400
     -> nvic@25
     frequency: 10000000
