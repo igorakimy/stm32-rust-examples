@@ -1,0 +1,55 @@
+[package]
+name = "rotary-encoder"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = {
+    version = "0.7.7",
+    features = ["critical-section-single-core"]
+}
+cortex-m-rt = "0.7.5"
+embedded-hal = "1.0.0"
+embassy-stm32 = {
+    version = "0.6.0",
+    features = ["stm32f446re", "unstable-pac", "time-driver-any", "exti"]
+}
+embassy-executor = {
+    version = "0.10.0",
+    features = ["platform-cortex-m", "executor-thread", "executor-interrupt"]
+}
+embassy-sync = "0.8.0"
+embassy-time = "0.5.1"
+heapless = "0.8"
+panic-halt = "1.0.0"
+either = {
+    version = "1.16.0",
+    default-features = false,
+}
+embassy-futures = "0.1.2"
+static_cell = "2.1.1"
+
+[[bin]]
+name = "rotary-encoder"
+test = false
+bench = false
+
+[profile.dev]
+lto = true
+opt-level = "s"
+
+[package.metadata.renode]
+name = "rotary-encoder"
+description = "renode script that shows how to work with rotary encoder"
+machine-name = "NUCLEO-F446RE"
+using-sysbus = true
+renode = "renode"
+platform-descriptions = [
+    "../../files/nucleo-f446re.repl",
+    "@breadboard.repl"
+]
+pre-start-commands = [
+    "logLevel -1 gpioPortA.greenLED",
+    "showAnalyzer sysbus.usart2",
+    "machine StartGdbServer 3333",
+]

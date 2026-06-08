@@ -1,0 +1,5 @@
+encButtonA: Miscellaneous.Button @ gpioPortB
+    -> gpioPortB@6
+
+encButtonB: Miscellaneous.Button @ gpioPortB
+    -> gpioPortB@7
