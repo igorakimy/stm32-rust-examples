@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+edition = "2024"
+
+members = [
+    "embassy-examples/clocks-config",
+    "embassy-examples/dynamic-indication",
+    "embassy-examples/external-gpio-interrupts",
+    "embassy-examples/led-blink",
+    "embassy-examples/rotary-encoder",
+    "embassy-examples/seven-segment-display",
+    "embassy-examples/simple-pwm",
+    "embassy-examples/switch-button",
+]
