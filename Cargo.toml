@@ -11,4 +11,5 @@ members = [
     "embassy-examples/seven-segment-display",
     "embassy-examples/simple-pwm",
     "embassy-examples/switch-button",
+    "embassy-examples/usart",
 ]
