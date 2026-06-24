@@ -3,6 +3,7 @@ resolver = "3"
 edition = "2024"
 
 members = [
+    "embassy-examples/adc",
     "embassy-examples/clocks-config",
     "embassy-examples/dynamic-indication",
     "embassy-examples/external-gpio-interrupts",

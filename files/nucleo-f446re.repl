@@ -87,6 +87,9 @@ syscfg: Miscellaneous.STM32_SYSCFG @ sysbus 0x40013800
 dma1: DMA.STM32DMA @ sysbus 0x40026000
     [0-7] -> nvic@[11-17,47]
 
+dma2: DMA.STM32DMA @ sysbus 0x40026400
+    [0-7] -> nvic@[56-60,68-70]
+
 iwdg: Timers.STM32_IndependentWatchdog @ sysbus 0x40003000
     frequency: 32000
     windowOption: false
@@ -98,6 +101,10 @@ rtc: Timers.STM32F4_RTC @ sysbus 0x40002800
 rcc: Miscellaneous.STM32F4_RCC @ sysbus 0x40023800
     rtcPeripheral: rtc
     Timer9Reset -> timer9@255
+
+adc1: Analog.STM32_ADC @ sysbus 0x40012000
+    IRQ -> nvic@18
+    DMARequest -> dma2@0 | dma2@4
 
 timer1: Timers.STM32_Timer @ sysbus 0x40010000
     BreakInterrupt -> nvic@24
